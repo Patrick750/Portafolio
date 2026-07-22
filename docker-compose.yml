@@ -1,0 +1,17 @@
+services:
+  # Frontend / Web Server
+  frontend:
+    container_name: portafolio
+    image: portafolio:latest
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    ports:
+      - "8080:80"
+    networks:
+      - portafolio-network
+      - proxy-network
+    restart: always
