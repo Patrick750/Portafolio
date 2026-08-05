@@ -1,17 +1,25 @@
 services:
   # Frontend / Web Server
   frontend:
-    container_name: portafolio
-    image: portafolio:latest
+    container_name: portafolio-patrick
+    image: patrick190/portafolio:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
     deploy:
       resources:
         limits:
           memory: 128M
         reservations:
           memory: 64M
-    ports:
-      - "8080:80"
+    expose:
+      - "80"
     networks:
-      - portafolio-network
-      - proxy-network
+      - portafolio
     restart: always
+
+
+networks:
+  portafolio:
+    external: true
+    name: proxy-network
