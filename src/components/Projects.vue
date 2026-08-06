@@ -49,6 +49,40 @@
                 :class="tech.category"
               >{{ tech.name }}</span>
             </div>
+
+            <!-- Links / Redirection section -->
+            <div class="project-links">
+              <a
+                :href="project.links.demo || '#'"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="project-link-btn"
+                :class="{ 'disabled-link': !project.links.demo }"
+                @click="!project.links.demo && $event.preventDefault()"
+              >
+                <span>Ver Demo / Proyecto</span>
+                <svg class="redirect-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+              <a
+                :href="project.links.repo || '#'"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="project-link-btn secondary"
+                :class="{ 'disabled-link': !project.links.repo }"
+                @click="!project.links.repo && $event.preventDefault()"
+              >
+                <span>Repositorio</span>
+                <svg class="redirect-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+            </div>
           </div>
 
           <!-- Hover line animation -->
@@ -75,33 +109,31 @@ const projects = ref([
       { name: 'SQL',             category: 'cat-db' },
       { name: 'Diagramas ER',    category: 'cat-db' },
       { name: 'Arquitectura',    category: 'cat-backend' },
-    ]
+    ],
+    links: {
+      demo: 'https://amazoniaviva.adsoproject.dev/',
+      repo: ''
+    }
   },
   {
-    title: 'App Móvil',
-    icon: '📱',
+    title: 'SoftVar — Sistema de Control de Asistencia y Nómina',
+    icon: '💼',
     status: 'Completado',
-    challenge: 'Construir una aplicación móvil nativa con flujo intuitivo que resuelva necesidades específicas del usuario final con mínima fricción.',
-    description: 'Aplicación Android compilada (.apk) con ciclo de vida gestionado correctamente, interfaz limpia orientada a la experiencia de usuario y lógica de negocio robusta.',
+    challenge: 'Implementar un sistema web integral de control de asistencia biométrica facial con GPS y liquidación de nómina según la legislación colombiana (CST) para PyMES.',
+    description: 'Sistema SPA + API REST (Vue 3 + Django 6) con reconocimiento facial (face-api.js), validación geográfica GPS, motor de liquidación de horas extra, generación de desprendibles PDF, exportación ACH y dashboard interactivo con Chart.js.',
     techs: [
-      { name: 'Android',         category: 'cat-mobile' },
-      { name: 'Java / Kotlin',   category: 'cat-mobile' },
-      { name: 'UI/UX',           category: 'cat-frontend' },
+      { name: 'Vue 3',           category: 'cat-frontend' },
+      { name: 'Vite',            category: 'cat-frontend' },
+      { name: 'Chart.js',        category: 'cat-frontend' },
+      { name: 'Python / Django', category: 'cat-backend' },
+      { name: 'Django REST',     category: 'cat-backend' },
       { name: 'SQLite',          category: 'cat-db' },
-    ]
-  },
-  {
-    title: 'Tecnogamer',
-    icon: '🎮',
-    status: 'Completado',
-    challenge: 'Modelar una base de datos relacional completa para una plataforma de gestión e-commerce orientada al rubro de hardware y videojuegos.',
-    description: 'Diseño de modelo entidad-relación normalizado, implementación de consultas SQL avanzadas y arquitectura backend para soportar operaciones CRUD de alto volumen.',
-    techs: [
-      { name: 'SQL Avanzado',    category: 'cat-db' },
-      { name: 'Diagramado ER',   category: 'cat-db' },
-      { name: 'Backend',         category: 'cat-backend' },
-      { name: 'APIs RESTful',    category: 'cat-backend' },
-    ]
+      { name: 'Biometría Facial',category: 'cat-mobile' }
+    ],
+    links: {
+      demo: 'https://softvar.adsoproject.dev/',
+      repo: ''
+    }
   }
 ]);
 
@@ -261,6 +293,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .tech-chip {
@@ -293,6 +326,61 @@ onMounted(() => {
   background: rgba(240, 49, 109, 0.1);
   color: var(--accent-pink);
   border: 1px solid rgba(240, 49, 109, 0.18);
+}
+
+/* Links & Redirection buttons */
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.project-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all var(--duration-base) var(--ease-smooth);
+}
+
+.project-link-btn:hover:not(.disabled-link) {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.15);
+}
+
+.project-link-btn.secondary {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border-subtle);
+}
+
+.project-link-btn.secondary:hover:not(.disabled-link) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.project-link-btn.disabled-link {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.redirect-icon {
+  transition: transform var(--duration-base);
+}
+
+.project-link-btn:hover:not(.disabled-link) .redirect-icon {
+  transform: translate(2px, -2px);
 }
 
 /* Hover line */
