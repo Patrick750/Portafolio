@@ -15,7 +15,7 @@
 
         <!-- Rotating role -->
         <div class="hero-role-wrapper" aria-live="polite">
-          <span class="hero-role-prefix">Soy </span>
+          
           <span class="hero-role gradient-text">{{ roles[currentRole] }}</span>
           <span class="hero-cursor">|</span>
         </div>
@@ -41,32 +41,30 @@
         </div>
       </div>
 
-      <!-- Right column: code card -->
+      <!-- Right column: photo card -->
       <div class="hero-card glass">
         <div class="card-topbar">
           <span class="dot dot-red"></span>
           <span class="dot dot-yellow"></span>
           <span class="dot dot-green"></span>
-          <span class="card-filename">developer.py</span>
+          <span class="card-filename">profile.jpg</span>
         </div>
-        <pre class="card-code"><code><span class="c"># Patrick Ortiz — Developer</span>
-
-<span class="kw">class</span> <span class="cl">Developer</span>:
-    name    = <span class="st">"Patrick Ortiz"</span>
-    role    = <span class="st">"Full Stack Dev"</span>
-
-    stack = {
-        <span class="st">"data"</span>:    [<span class="st">"Python"</span>, <span class="st">"Pandas"</span>, <span class="st">"NumPy"</span>],
-        <span class="st">"frontend"</span>: [<span class="st">"Vue.js"</span>, <span class="st">"Tailwind"</span>],
-        <span class="st">"backend"</span>:  [<span class="st">"REST APIs"</span>, <span class="st">"JWT"</span>, <span class="st">"SQL"</span>],
-        <span class="st">"tools"</span>:   [<span class="st">"Git"</span>, <span class="st">"Linux"</span>, <span class="st">"Docker"</span>],
-    }
-
-    methodology = [<span class="st">"Scrum"</span>, <span class="st">"Kanban"</span>]
-
-    <span class="kw">def</span> <span class="fn">solve</span>(self, problem):
-        <span class="kw">return</span> <span class="st">"Clean solution ✓"</span>
-</code></pre>
+        <div class="card-image-wrapper">
+          <img 
+            :src="profileImg" 
+            alt="Patrick Ortiz" 
+            class="profile-img"
+            @error="hasError = true"
+            v-if="!hasError"
+          />
+          <div class="image-placeholder" v-else>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <p>Coloca tu foto en <code>public/profile.jpg</code></p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -79,6 +77,9 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import profileImg from '../assets/profile.jpg';
+
+const hasError = ref(false);
 
 const roles = ['Desarrollador Backend', 'Analista de Datos', 'Dev Frontend', 'Solucionador de problemas'];
 const currentRole = ref(0);
@@ -287,21 +288,49 @@ onUnmounted(() => clearInterval(interval));
   font-family: 'Courier New', monospace;
 }
 
-.card-code {
-  padding: 1.5rem;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.88rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
-  overflow-x: auto;
+.card-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Syntax highlight */
-.card-code .c  { color: #44505f; }       /* comment */
-.card-code .kw { color: var(--accent-pink); }  /* keyword */
-.card-code .cl { color: var(--accent-cyan); }  /* class */
-.card-code .st { color: var(--accent-green); } /* string */
-.card-code .fn { color: var(--accent-blue); }  /* function */
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+  will-change: transform;
+}
+
+.hero-card:hover .profile-img {
+  transform: scale(1.08);
+  filter: brightness(1.05);
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.image-placeholder code {
+  color: var(--accent-cyan);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
 
 /* ---- Scroll cue ---- */
 .scroll-cue {
