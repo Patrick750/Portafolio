@@ -16,24 +16,12 @@
         </li>
       </ul>
 
-      <!-- CTA & Login -->
+      <!-- CTA -->
       <div class="navbar-cta">
         <span class="available-badge">
           <span class="pulse-dot"></span>
           Disponible
         </span>
-        <button v-if="!userLoggedIn" @click="showLogin = true" class="login-nav-btn" id="navbar-login-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-            <polyline points="10 17 15 12 10 7"></polyline>
-            <line x1="15" y1="12" x2="3" y2="12"></line>
-          </svg>
-          Iniciar Sesión
-        </button>
-        <div v-else class="user-badge" id="navbar-user-badge">
-          <span>{{ userEmail }}</span>
-          <button @click="handleLogout" class="logout-btn" title="Cerrar sesión">✕</button>
-        </div>
       </div>
 
       <!-- Mobile toggle -->
@@ -49,45 +37,23 @@
       <a v-for="link in links" :key="link.href" :href="link.href" class="mobile-link" @click="menuOpen = false">
         {{ link.label }}
       </a>
-      <button v-if="!userLoggedIn" @click="showLogin = true; menuOpen = false;" class="mobile-link mobile-login-btn">
-        Iniciar Sesión
-      </button>
-      <button v-else @click="handleLogout" class="mobile-link mobile-login-btn">
-        Cerrar Sesión ({{ userEmail }})
-      </button>
     </div>
-
-    <!-- Login Modal Component -->
-    <LoginModal :isOpen="showLogin" @close="showLogin = false" @success="onLoginSuccess" />
   </header>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import LoginModal from './LoginModal.vue';
 
 const isScrolled = ref(false);
 const activeSection = ref('hero');
 const menuOpen = ref(false);
-const showLogin = ref(false);
-const userLoggedIn = ref(false);
-const userEmail = ref('');
-
-const onLoginSuccess = (user) => {
-  userLoggedIn.value = true;
-  userEmail.value = user.correo;
-};
-
-const handleLogout = () => {
-  userLoggedIn.value = false;
-  userEmail.value = '';
-};
 
 const links = [
   { href: '#skills',   label: 'Habilidades', section: 'skills' },
   { href: '#projects', label: 'Proyectos',   section: 'projects' },
   { href: '#contact',  label: 'Contacto',    section: 'contact' },
 ];
+
 
 
 const handleScroll = () => {

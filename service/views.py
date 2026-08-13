@@ -2,6 +2,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.hashers import check_password
 from .models import Usuario
 
 
@@ -32,9 +33,9 @@ def login(request):
         response["Access-Control-Allow-Origin"] = "*"
         return response
 
-    user = Usuario.objects.filter(correo=correo, contrasena=contrasena).first()
+    user = Usuario.objects.filter(correo=correo).first()
 
-    if user:
+    if user and (check_password(contrasena, user.contrasena) or user.contrasena == contrasena):
         response = JsonResponse({
             'success': True,
             'message': 'Inicio de sesión exitoso',
@@ -51,4 +52,5 @@ def login(request):
 
     response["Access-Control-Allow-Origin"] = "*"
     return response
+
 
