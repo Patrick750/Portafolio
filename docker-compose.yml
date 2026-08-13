@@ -4,7 +4,7 @@ services:
     container_name: portafolio-patrick
     image: patrick190/portafolio:latest
     build: 
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     deploy:
       resources:

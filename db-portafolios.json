@@ -1,0 +1,375 @@
+{
+  "tables": [
+    {
+      "id": "1UvGjLTQDw2s6ONDgAlHQ",
+      "name": "proyectos",
+      "x": -479.89923531249997,
+      "y": -174.7602143750001,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "unsigned": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "Za12j3cNsFWOPdh61Uoy5"
+        },
+        {
+          "id": "LVX0gqKpao5tBpAi08B_M",
+          "name": "nombre",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "ZvO7cczsrNnPeJOp0IoTw",
+          "name": "descripcion",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "pNk05E-GEz0-oUYzxf1tM",
+          "name": "herramientas",
+          "type": "JSONB",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
+          "id": "aTO3pM6hWbe3s_9riBDQP",
+          "name": "demo",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "RgnFuctEnmZdjTnlCHWZu",
+          "name": "github",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "p-6GX2vYdf991h5F8lweg",
+          "name": "estado",
+          "type": "BOOLEAN",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
+          "id": "DEVXotfQiRN3kf8uu1M6V",
+          "name": "reto",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "uniqueConstraints": [],
+      "color": "#175e7a",
+      "collapsed": false
+    },
+    {
+      "id": "EXwQ0GpxjLx_O9_5O5zea",
+      "name": "contacto",
+      "x": -79.78912999999989,
+      "y": -105.24062640625007,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "unsigned": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "FJ60_F6NfwNYZIzkf4h2P"
+        },
+        {
+          "id": "01Ckg6Q4bHfJJXEqBWoN_",
+          "name": "correo",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "qfC5bZdKLkiaXRmoIHE-o",
+          "name": "link",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "wJkzqY3uU1re0CbfIyKUp",
+          "name": "github",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "uniqueConstraints": [],
+      "color": "#175e7a",
+      "collapsed": false
+    },
+    {
+      "id": "gSTHT8ZD3v9bEXvYPd7If",
+      "name": "categorias",
+      "x": 88.68003624999994,
+      "y": 156.39709390625003,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "unsigned": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "mMUwvqe1XkMkdblFovMXo"
+        },
+        {
+          "id": "eTbp2WVDsNcobsZtornLx",
+          "name": "nombre",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "uniqueConstraints": [],
+      "color": "#175e7a",
+      "collapsed": false
+    },
+    {
+      "id": "GyJwSIRogWrcfdvFUqr6z",
+      "name": "tools",
+      "x": -189.54934437499998,
+      "y": 199.79066703125017,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "unsigned": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "wYdS2K4OauSuZGW2OUACR"
+        },
+        {
+          "id": "rlaM7CUpr70Hsmgglgx4H",
+          "name": "area",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "lOHTHR2acIh39Xa12DQem",
+          "name": "herramientas",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "1EO7Xque07J83P9hc7z0c",
+          "name": "id_categorias",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "uniqueConstraints": [],
+      "color": "#175e7a",
+      "collapsed": false
+    },
+    {
+      "id": "eDCAO-E3c5RSx3hzF2oPl",
+      "name": "usuarios",
+      "x": 215.03191093750002,
+      "y": -123.10856828125003,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "unsigned": true,
+          "notNull": true,
+          "increment": true,
+          "comment": "",
+          "id": "MNjm2W_Ovu1UGSgPLJ8oR"
+        },
+        {
+          "id": "5Ed_TPKINGh3hgfUDrVtq",
+          "name": "correo",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        },
+        {
+          "id": "WoKi2mx9w0nyEpT6Fn1BG",
+          "name": "contraseña",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": 255
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "uniqueConstraints": [],
+      "color": "#175e7a",
+      "collapsed": false
+    }
+  ],
+  "relationships": [
+    {
+      "startTableId": "gSTHT8ZD3v9bEXvYPd7If",
+      "startFieldId": "mMUwvqe1XkMkdblFovMXo",
+      "endTableId": "GyJwSIRogWrcfdvFUqr6z",
+      "endFieldId": "1EO7Xque07J83P9hc7z0c",
+      "cardinality": "one_to_many",
+      "fields": [
+        {
+          "startFieldId": "mMUwvqe1XkMkdblFovMXo",
+          "endFieldId": "1EO7Xque07J83P9hc7z0c"
+        }
+      ],
+      "updateConstraint": "No action",
+      "deleteConstraint": "No action",
+      "name": "fk_categorias_id_tools",
+      "id": "5mwucXyujpjAKl3m0P89B"
+    }
+  ],
+  "notes": [],
+  "subjectAreas": [],
+  "database": "postgresql",
+  "types": [],
+  "enums": [],
+  "title": "Untitled Diagram"
+}
