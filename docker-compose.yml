@@ -1,5 +1,4 @@
 services:
-  # Frontend / Web Server
   frontend:
     container_name: portafolio-patrick
     image: patrick190/portafolio:latest
@@ -16,10 +15,51 @@ services:
       - "8081:80"
     networks:
       - portafolio
+    depends_on:
+      - backend
     restart: always
 
+  backend:
+    container_name: portafolio-backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: patrick190/portafolio-backend:latest
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    env_file:
+      - .env
+    ports:
+      - "9000:8000"
+    networks:
+      - portafolio
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    container_name: portafolio_db
+    restart:  always
+    ports:
+      - "5439:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
+    volumes:
+      - portafolio:/var/lib/postgresql/data
+    networks:
+      - portafolio
 
 networks:
   portafolio:
     external: true
     name: proxy-network
+
+volumes:
+  portafolio:
