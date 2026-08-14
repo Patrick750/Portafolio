@@ -147,8 +147,8 @@ const handleLogin = async () => {
     if (response.ok && data.success) {
       successMessage.value = data.message || 'Inicio de sesión exitoso';
       setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
+        window.location.href = '/dashboard';
+      }, 1200);
     } else {
       errorMessage.value = data.error || 'Credenciales incorrectas. Verifique su correo y contraseña.';
     }
