@@ -267,27 +267,67 @@
               <textarea v-model="proyectoForm.reto" rows="2" class="form-input" placeholder="Describa el reto o desafío principal..."></textarea>
             </div>
 
-            <!-- Dynamic Herramientas list -->
+            <!-- ===== CHIP SELECTOR INTERACTIVO ===== -->
             <div class="form-group">
               <div class="label-with-action">
                 <label>Herramientas / Tecnologías</label>
-                <button type="button" class="btn-add-item" @click="addHerramienta">+ Agregar herramienta</button>
+                <span class="chip-counter">{{ proyectoForm.herramientasList.length }} seleccionadas</span>
               </div>
-              <div class="dynamic-items-list">
-                <div v-for="(item, idx) in proyectoForm.herramientasList" :key="idx" class="dynamic-item-row">
-                  <input
-                    v-model="proyectoForm.herramientasList[idx]"
-                    class="form-input"
-                    placeholder="Ej. Vue.js, Django, PostgreSQL"
-                  />
-                  <button
-                    v-if="proyectoForm.herramientasList.length > 1"
-                    type="button"
-                    class="btn-remove-item"
-                    @click="removeHerramienta(idx)"
-                    title="Eliminar ítem"
-                  >✕</button>
-                </div>
+
+              <!-- Selected chips display -->
+              <div class="selected-chips-wrap" v-if="proyectoForm.herramientasList.length > 0">
+                <span
+                  v-for="chip in proyectoForm.herramientasList"
+                  :key="chip"
+                  class="sel-chip"
+                  @click="removeProjectChip(chip)"
+                  title="Click para eliminar"
+                >
+                  {{ chip }}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </span>
+              </div>
+              <p v-else class="chips-empty-hint">Selecciona o escribe las tecnologías abajo ↓</p>
+
+              <!-- Category filter tabs -->
+              <div class="chip-cat-tabs">
+                <button
+                  v-for="cat in chipCategories"
+                  :key="cat.id"
+                  type="button"
+                  class="chip-cat-btn"
+                  :class="{ active: activeProjectChipCat === cat.id }"
+                  @click="activeProjectChipCat = cat.id"
+                >{{ cat.icon }} {{ cat.label }}</button>
+              </div>
+
+              <!-- Preset chips grid -->
+              <div class="preset-chips">
+                <button
+                  v-for="tech in filteredProjectPresetChips"
+                  :key="tech"
+                  type="button"
+                  class="preset-chip"
+                  :class="{ selected: proyectoForm.herramientasList.includes(tech) }"
+                  @click="toggleProjectChip(tech)"
+                >{{ tech }}</button>
+              </div>
+
+              <!-- Custom chip input -->
+              <div class="custom-chip-row">
+                <input
+                  v-model="customProjectChipInput"
+                  class="form-input custom-chip-input"
+                  placeholder="+ Agregar tecnología personalizada..."
+                  @keydown.enter.prevent="addCustomProjectChip"
+                  @keydown.comma.prevent="addCustomProjectChip"
+                />
+                <button type="button" class="btn-add-chip" @click="addCustomProjectChip" :disabled="!customProjectChipInput.trim()">
+                  Agregar
+                </button>
               </div>
             </div>
 
@@ -557,23 +597,46 @@ const proyectoForm = reactive({
   nombre: '',
   descripcion: '',
   reto: '',
-  herramientasList: [''],
+  herramientasList: [],
   demo: '',
   github: '',
   estado: true
 });
 
-const addHerramienta = () => {
-  proyectoForm.herramientasList.push('');
-};
+const customProjectChipInput = ref('');
+const activeProjectChipCat   = ref('all');
 
-const removeHerramienta = (index) => {
-  if (proyectoForm.herramientasList.length > 1) {
-    proyectoForm.herramientasList.splice(index, 1);
+const filteredProjectPresetChips = computed(() =>
+  CHIP_CATALOG[activeProjectChipCat.value] || CHIP_CATALOG.all
+);
+
+function toggleProjectChip(tech) {
+  const idx = proyectoForm.herramientasList.indexOf(tech);
+  if (idx === -1) {
+    proyectoForm.herramientasList.push(tech);
+  } else {
+    proyectoForm.herramientasList.splice(idx, 1);
   }
-};
+}
+
+function removeProjectChip(tech) {
+  const idx = proyectoForm.herramientasList.indexOf(tech);
+  if (idx !== -1) proyectoForm.herramientasList.splice(idx, 1);
+}
+
+function addCustomProjectChip() {
+  const val = customProjectChipInput.value.trim().replace(/,$/, '');
+  if (!val || proyectoForm.herramientasList.includes(val)) {
+    customProjectChipInput.value = '';
+    return;
+  }
+  proyectoForm.herramientasList.push(val);
+  customProjectChipInput.value = '';
+}
 
 const openProyectoModal = (p = null) => {
+  customProjectChipInput.value = '';
+  activeProjectChipCat.value = 'all';
   if (p) {
     proyectoModal.isEdit = true;
     proyectoModal.id = p.id;
@@ -582,7 +645,7 @@ const openProyectoModal = (p = null) => {
     proyectoForm.reto = p.reto || '';
     proyectoForm.herramientasList = Array.isArray(p.herramientas) && p.herramientas.length > 0
       ? [...p.herramientas]
-      : [''];
+      : [];
     proyectoForm.demo = p.demo || '';
     proyectoForm.github = p.github || '';
     proyectoForm.estado = p.estado !== undefined ? p.estado : true;
@@ -592,7 +655,7 @@ const openProyectoModal = (p = null) => {
     proyectoForm.nombre = '';
     proyectoForm.descripcion = '';
     proyectoForm.reto = '';
-    proyectoForm.herramientasList = [''];
+    proyectoForm.herramientasList = [];
     proyectoForm.demo = '';
     proyectoForm.github = '';
     proyectoForm.estado = true;

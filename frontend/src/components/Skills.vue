@@ -28,7 +28,14 @@
       <template v-else-if="groupedCategories.length > 0">
 
         <!-- ===== CATEGORY TABS ===== -->
-        <div class="cat-tabs-wrap fade-up">
+        <div 
+          class="cat-tabs-wrap fade-up"
+          ref="tabsWrap"
+          @mousedown="onDragStart"
+          @mouseleave="onDragEnd"
+          @mouseup="onDragEnd"
+          @mousemove="onDragMove"
+        >
           <nav class="cat-tabs" role="tablist" aria-label="Categorías de habilidades">
             <button
               v-for="cat in groupedCategories"
@@ -248,7 +255,7 @@ function getAvgProgress(skills) {
 }
 
 // ── Helpers: icons ────────────────────────────────────────────────────────────
-const svgBase = (path) => `<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+const svgBase = (path) => `<svg viewBox="0 0 24 24" width="1em" height="1em" style="display: block; margin-top: -1px;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 
 const ICONS = {
   code: svgBase('<polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline>'),
@@ -339,11 +346,37 @@ function toggleFlip(skill) {
 
 // ── Category change with stagger animation ────────────────────────────────────
 function setCategory(id) {
-  if (activeCatId.value === id) return;
-  activeCatId.value = id;
-  triggerAnimations();
+  if (activeCatId.value !== id) {
+    activeCatId.value = id;
+    triggerAnimations();
+  }
 }
 
+// ── Drag to scroll tabs ───────────────────────────────────────────────────────
+const tabsWrap = ref(null);
+let isDragging = false;
+let startX;
+let scrollLeft;
+
+function onDragStart(e) {
+  isDragging = true;
+  startX = e.pageX - tabsWrap.value.offsetLeft;
+  scrollLeft = tabsWrap.value.scrollLeft;
+}
+
+function onDragEnd() {
+  isDragging = false;
+}
+
+function onDragMove(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+  const x = e.pageX - tabsWrap.value.offsetLeft;
+  const walk = (x - startX) * 2;
+  tabsWrap.value.scrollLeft = scrollLeft - walk;
+}
+
+// ── Animations ────────────────────────────────────────────────────────────────
 function triggerAnimations() {
   // Reset animations for the new category's skills
   const cat = groupedCategories.value.find(c => c.id === activeCatId.value);
@@ -503,7 +536,9 @@ onMounted(async () => {
   padding-bottom: 0.25rem;
   /* Hide scrollbar */
   scrollbar-width: none;
+  cursor: grab;
 }
+.cat-tabs-wrap:active { cursor: grabbing; }
 .cat-tabs-wrap::-webkit-scrollbar { display: none; }
 
 .cat-tabs {
@@ -551,7 +586,12 @@ onMounted(async () => {
 }
 .cat-tab.active::before { opacity: 1; }
 
-.tab-icon  { font-size: 1.1rem; line-height: 1; }
+.tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
 .tab-name  { letter-spacing: 0.01em; }
 
 .tab-right {
@@ -703,8 +743,10 @@ onMounted(async () => {
 }
 
 .ring-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.55rem;
-  line-height: 1;
   filter: drop-shadow(0 0 6px rgba(0,0,0,0.5));
 }
 
@@ -796,7 +838,13 @@ onMounted(async () => {
   margin-top: 0.3rem;
 }
 
-.back-emoji { font-size: 1.9rem; line-height: 1; flex-shrink: 0; }
+.back-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.9rem;
+  flex-shrink: 0;
+}
 .back-skill-name { text-align: left; margin-bottom: 0.3rem; }
 
 /* Progress bar on back */
