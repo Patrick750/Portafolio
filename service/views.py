@@ -226,7 +226,8 @@ def tool_to_dict(t):
         'area': t.area or '',
         'herramientas': t.herramientas or '',
         'id_categorias': t.id_categorias_id,
-        'categoria_nombre': t.id_categorias.nombre if t.id_categorias else ''
+        'categoria_nombre': t.id_categorias.nombre if t.id_categorias else '',
+        'progreso': t.progreso if t.progreso is not None else 0
     }
 
 
@@ -256,7 +257,8 @@ def tools_api(request, pk=None):
         t = Tool.objects.create(
             area=data.get('area', ''),
             herramientas=data.get('herramientas', ''),
-            id_categorias=categoria
+            id_categorias=categoria,
+            progreso=data.get('progreso', 0)
         )
         return json_response(tool_to_dict(t), status=201)
 
@@ -279,6 +281,8 @@ def tools_api(request, pk=None):
         if 'id_categorias' in data:
             cat_id = data['id_categorias']
             t.id_categorias = Categoria.objects.filter(pk=cat_id).first() if cat_id else None
+        if 'progreso' in data:
+            t.progreso = data['progreso']
 
         t.save()
         return json_response(tool_to_dict(t))

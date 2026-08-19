@@ -50,6 +50,7 @@ class Tool(models.Model):
         null=True,
         blank=True
     )
+    progreso = models.IntegerField(default=0, null=True, blank=True)
 
     class Meta:
         db_table = 'tools'

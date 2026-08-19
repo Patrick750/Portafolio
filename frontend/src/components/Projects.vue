@@ -7,10 +7,25 @@
         <p class="section-subtitle">Soluciones desarrolladas desde la concepción hasta el despliegue</p>
       </div>
 
-      <div class="projects-list">
+      <!-- Loading skeleton -->
+      <div v-if="loading" class="projects-list">
+        <div v-for="n in 2" :key="n" class="project-card glass skeleton-card fade-up">
+          <div class="sk-line sk-title"></div>
+          <div class="sk-line sk-body"></div>
+          <div class="sk-line sk-body short"></div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else-if="projects.length === 0" class="empty-state fade-up">
+        <span class="empty-icon">🗂️</span>
+        <p>No hay proyectos registrados aún.</p>
+      </div>
+
+      <div v-else class="projects-list">
         <article
           v-for="(project, index) in projects"
-          :key="project.title"
+          :key="project.id"
           class="project-card glass fade-up"
         >
           <!-- Number accent -->
@@ -21,44 +36,44 @@
             <div class="project-top">
               <div>
                 <div class="project-status">
-                  <span class="status-dot" :class="project.status === 'Completado' ? 'dot-done' : 'dot-wip'"></span>
-                  <span class="status-text">{{ project.status }}</span>
+                  <span class="status-dot" :class="project.estado ? 'dot-done' : 'dot-wip'"></span>
+                  <span class="status-text">{{ project.estado ? 'Completado' : 'En desarrollo' }}</span>
                 </div>
-                <h3 class="project-title">{{ project.title }}</h3>
+                <h3 class="project-title">{{ project.nombre }}</h3>
               </div>
               <div class="project-icon-wrap">
-                <span class="project-icon">{{ project.icon }}</span>
+                <span class="project-icon">{{ getProjectIcon(project.nombre) }}</span>
               </div>
             </div>
 
             <!-- Challenge -->
-            <div class="project-challenge">
+            <div v-if="project.reto" class="project-challenge">
               <span class="challenge-label">Reto</span>
-              <p class="challenge-text">{{ project.challenge }}</p>
+              <p class="challenge-text">{{ project.reto }}</p>
             </div>
 
             <!-- Description -->
-            <p class="project-desc">{{ project.description }}</p>
+            <p class="project-desc">{{ project.descripcion }}</p>
 
-            <!-- Tech badges -->
-            <div class="project-techs">
+            <!-- Tech badges from herramientas array -->
+            <div class="project-techs" v-if="project.herramientas && project.herramientas.length">
               <span
-                v-for="tech in project.techs"
-                :key="tech.name"
+                v-for="tech in project.herramientas"
+                :key="tech"
                 class="tech-chip"
-                :class="tech.category"
-              >{{ tech.name }}</span>
+                :class="getTechCategory(tech)"
+              >{{ tech }}</span>
             </div>
 
-            <!-- Links / Redirection section -->
+            <!-- Links -->
             <div class="project-links">
               <a
-                :href="project.links.demo || '#'"
+                :href="project.demo || '#'"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="project-link-btn"
-                :class="{ 'disabled-link': !project.links.demo }"
-                @click="!project.links.demo && $event.preventDefault()"
+                :class="{ 'disabled-link': !project.demo }"
+                @click="!project.demo && $event.preventDefault()"
               >
                 <span>Ver Demo / Proyecto</span>
                 <svg class="redirect-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -68,12 +83,12 @@
                 </svg>
               </a>
               <a
-                :href="project.links.repo || '#'"
+                :href="project.github || '#'"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="project-link-btn secondary"
-                :class="{ 'disabled-link': !project.links.repo }"
-                @click="!project.links.repo && $event.preventDefault()"
+                :class="{ 'disabled-link': !project.github }"
+                @click="!project.github && $event.preventDefault()"
               >
                 <span>Repositorio</span>
                 <svg class="redirect-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -96,54 +111,61 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 
-const projects = ref([
-  {
-    title: 'Amazonia Viva',
-    icon: '🌿',
-    status: 'Completado',
-    challenge: 'Diseñar un sistema escalable capaz de centralizar y gestionar procesos ecológicos y comerciales de una región geográfica extensa.',
-    description: 'Plataforma web completa con modelo de datos relacional normalizado, interfaz responsiva en Vue.js y arquitectura orientada a la escalabilidad y mantenibilidad.',
-    techs: [
-      { name: 'Vue.js',          category: 'cat-frontend' },
-      { name: 'CSS / UI',        category: 'cat-frontend' },
-      { name: 'SQL',             category: 'cat-db' },
-      { name: 'Diagramas ER',    category: 'cat-db' },
-      { name: 'Arquitectura',    category: 'cat-backend' },
-    ],
-    links: {
-      demo: 'https://amazoniaviva.adsoproject.dev/',
-      repo: ''
-    }
-  },
-  {
-    title: 'SoftVar — Sistema de Control de Asistencia y Nómina',
-    icon: '💼',
-    status: 'Completado',
-    challenge: 'Implementar un sistema web integral de control de asistencia biométrica facial con GPS y liquidación de nómina según la legislación colombiana (CST) para PyMES.',
-    description: 'Sistema SPA + API REST (Vue 3 + Django 6) con reconocimiento facial (face-api.js), validación geográfica GPS, motor de liquidación de horas extra, generación de desprendibles PDF, exportación ACH y dashboard interactivo con Chart.js.',
-    techs: [
-      { name: 'Vue 3',           category: 'cat-frontend' },
-      { name: 'Vite',            category: 'cat-frontend' },
-      { name: 'Chart.js',        category: 'cat-frontend' },
-      { name: 'Python / Django', category: 'cat-backend' },
-      { name: 'Django REST',     category: 'cat-backend' },
-      { name: 'SQLite',          category: 'cat-db' },
-      { name: 'Biometría Facial',category: 'cat-mobile' }
-    ],
-    links: {
-      demo: 'https://softvar.adsoproject.dev/',
-      repo: ''
-    }
-  }
-]);
+const projects = ref([]);
+const loading  = ref(true);
 
-onMounted(() => {
-  const els = document.querySelectorAll('.fade-up');
-  const observer = new IntersectionObserver(
-    (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
-    { threshold: 0.1 }
-  );
-  els.forEach(el => observer.observe(el));
+// Classify tech chips by category based on keyword matching
+const FRONTEND_KEYS  = ['vue', 'react', 'angular', 'svelte', 'html', 'css', 'tailwind', 'vite', 'nuxt', 'next', 'chart', 'bootstrap', 'sass', 'ui'];
+const BACKEND_KEYS   = ['django', 'node', 'express', 'fastapi', 'spring', 'laravel', 'api', 'rest', 'graphql', 'python', 'java', 'php', 'ruby', 'golang', 'c#', 'asp', '.net', 'jwt', 'auth'];
+const DB_KEYS        = ['sql', 'postgres', 'mysql', 'mongodb', 'redis', 'sqlite', 'oracle', 'supabase', 'db', 'database', 'diagrama', 'normaliz', 'er'];
+const MOBILE_KEYS    = ['mobile', 'android', 'ios', 'flutter', 'react native', 'biometría', 'biometria', 'facial', 'gps'];
+
+function getTechCategory(tech) {
+  const t = tech.toLowerCase();
+  if (MOBILE_KEYS.some(k  => t.includes(k))) return 'cat-mobile';
+  if (DB_KEYS.some(k      => t.includes(k))) return 'cat-db';
+  if (BACKEND_KEYS.some(k => t.includes(k))) return 'cat-backend';
+  return 'cat-frontend';
+}
+
+const ICONS = [
+  ['amazonia', '🌿'], ['softvar', '💼'], ['portafolio', '🗂️'], ['ecommerce', '🛒'],
+  ['blog', '✍️'], ['chat', '💬'], ['admin', '⚙️'], ['api', '🔌'], ['data', '📊'],
+  ['machine', '🤖'], ['analisis', '🔍'], ['game', '🎮'],
+];
+
+function getProjectIcon(nombre = '') {
+  const n = nombre.toLowerCase();
+  for (const [keyword, icon] of ICONS) {
+    if (n.includes(keyword)) return icon;
+  }
+  return '🚀';
+}
+
+const fetchProyectos = async () => {
+  loading.value = true;
+  try {
+    const res = await fetch('/api/proyectos/');
+    if (res.ok) projects.value = await res.json();
+  } catch (err) {
+    console.error('[Projects] Error al cargar proyectos:', err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(async () => {
+  await fetchProyectos();
+
+  // Animate fade-up after data is loaded
+  requestAnimationFrame(() => {
+    const els = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.1 }
+    );
+    els.forEach(el => observer.observe(el));
+  });
 });
 </script>
 
@@ -155,6 +177,45 @@ onMounted(() => {
   flex-direction: column;
   gap: 2rem;
 }
+
+/* ---- Skeleton ---- */
+.skeleton-card {
+  min-height: 180px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sk-line {
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.sk-title  { width: 55%; height: 24px; }
+.sk-body   { width: 85%; }
+.sk-body.short { width: 60%; }
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+/* ---- Empty state ---- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.empty-icon { font-size: 2.5rem; }
 
 /* ---- Card ---- */
 .project-card {

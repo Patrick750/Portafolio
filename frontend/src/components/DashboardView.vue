@@ -207,6 +207,7 @@
                 <th>Área</th>
                 <th>Herramientas</th>
                 <th>Categoría</th>
+                <th>Progreso</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -217,6 +218,18 @@
                 <td>{{ t.herramientas }}</td>
                 <td>
                   <span class="category-pill">{{ t.categoria_nombre || 'Sin categoría' }}</span>
+                </td>
+                <td class="progress-cell">
+                  <div class="mini-progress-wrap">
+                    <div class="mini-progress-track">
+                      <div
+                        class="mini-progress-fill"
+                        :class="t.progreso >= 80 ? 'fill-high' : t.progreso >= 50 ? 'fill-med' : 'fill-low'"
+                        :style="{ width: (t.progreso || 0) + '%' }"
+                      ></div>
+                    </div>
+                    <span class="mini-progress-label">{{ t.progreso || 0 }}%</span>
+                  </div>
                 </td>
                 <td class="actions-cell">
                   <button class="btn-action edit" @click="openToolModal(t)">Editar</button>
@@ -346,9 +359,68 @@
               <input v-model="toolForm.area" required class="form-input" placeholder="Ej. Frontend, Backend, DevOps" />
             </div>
 
+            <!-- ===== CHIP SELECTOR INTERACTIVO ===== -->
             <div class="form-group">
-              <label>Herramientas</label>
-              <input v-model="toolForm.herramientas" required class="form-input" placeholder="Ej. Vue 3, Tailwind, Vite" />
+              <div class="label-with-action">
+                <label>Herramientas / Tecnologías</label>
+                <span class="chip-counter">{{ toolForm.selectedChips.length }} seleccionadas</span>
+              </div>
+
+              <!-- Selected chips display -->
+              <div class="selected-chips-wrap" v-if="toolForm.selectedChips.length > 0">
+                <span
+                  v-for="chip in toolForm.selectedChips"
+                  :key="chip"
+                  class="sel-chip"
+                  @click="removeChip(chip)"
+                  title="Click para eliminar"
+                >
+                  {{ chip }}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </span>
+              </div>
+              <p v-else class="chips-empty-hint">Selecciona o escribe las tecnologías abajo ↓</p>
+
+              <!-- Category filter tabs -->
+              <div class="chip-cat-tabs">
+                <button
+                  v-for="cat in chipCategories"
+                  :key="cat.id"
+                  type="button"
+                  class="chip-cat-btn"
+                  :class="{ active: activeChipCat === cat.id }"
+                  @click="activeChipCat = cat.id"
+                >{{ cat.icon }} {{ cat.label }}</button>
+              </div>
+
+              <!-- Preset chips grid -->
+              <div class="preset-chips">
+                <button
+                  v-for="tech in filteredPresetChips"
+                  :key="tech"
+                  type="button"
+                  class="preset-chip"
+                  :class="{ selected: toolForm.selectedChips.includes(tech) }"
+                  @click="toggleChip(tech)"
+                >{{ tech }}</button>
+              </div>
+
+              <!-- Custom chip input -->
+              <div class="custom-chip-row">
+                <input
+                  v-model="customChipInput"
+                  class="form-input custom-chip-input"
+                  placeholder="+ Agregar tecnología personalizada..."
+                  @keydown.enter.prevent="addCustomChip"
+                  @keydown.comma.prevent="addCustomChip"
+                />
+                <button type="button" class="btn-add-chip" @click="addCustomChip" :disabled="!customChipInput.trim()">
+                  Agregar
+                </button>
+              </div>
             </div>
 
             <div class="form-group">
@@ -359,6 +431,33 @@
                   {{ cat.nombre }}
                 </option>
               </select>
+            </div>
+
+            <div class="form-group">
+              <div class="label-with-action">
+                <label>Progreso de Habilidad</label>
+                <span class="progress-value-badge" :class="toolForm.progreso >= 80 ? 'badge-high' : toolForm.progreso >= 50 ? 'badge-med' : 'badge-low'">
+                  {{ toolForm.progreso >= 80 ? 'Avanzado' : toolForm.progreso >= 50 ? 'Intermedio' : 'En Estudio' }}
+                </span>
+              </div>
+              <div class="slider-wrap">
+                <div class="slider-track-container">
+                  <div class="slider-track-display">
+                    <div
+                      class="slider-fill"
+                      :class="toolForm.progreso >= 80 ? 'fill-high' : toolForm.progreso >= 50 ? 'fill-med' : 'fill-low'"
+                      :style="{ width: toolForm.progreso + '%' }"
+                    ></div>
+                  </div>
+                  <input
+                    type="range"
+                    v-model.number="toolForm.progreso"
+                    min="0" max="100" step="1"
+                    class="progress-slider"
+                  />
+                </div>
+                <span class="slider-percent">{{ toolForm.progreso }}%</span>
+              </div>
             </div>
 
             <div class="modal-actions">
@@ -373,7 +472,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 
 const activeTab = ref('proyectos');
 
@@ -604,37 +703,151 @@ const deleteContacto = async (id) => {
 // CRUD 3: TOOL LOGIC
 // -----------------------------------------------------------------------------
 const toolModal = reactive({ show: false, isEdit: false, id: null });
-const toolForm = reactive({ area: '', herramientas: '', id_categorias: null });
+const toolForm = reactive({
+  area: '',
+  herramientas: '',       // CSV final para la API
+  selectedChips: [],      // array reactivo de chips seleccionados
+  id_categorias: null,
+  progreso: 0
+});
 
+// ── Custom chip input ────────────────────────────────────────────────────────
+const customChipInput = ref('');
+const activeChipCat   = ref('all');
+
+// ── Preset technology catalog ────────────────────────────────────────────────
+const CHIP_CATALOG = {
+  all: [],   // populated below
+  data: [
+    'Python', 'Pandas', 'NumPy', 'Polars', 'SciPy', 'Matplotlib', 'Seaborn',
+    'Plotly', 'Jupyter', 'Scikit-learn', 'TensorFlow', 'PyTorch', 'Keras',
+    'Statsmodels', 'Feature Engineering', 'EDA', 'Data Cleaning', 'ETL',
+  ],
+  web: [
+    'JavaScript', 'TypeScript', 'ES6+', 'Vue 3', 'React', 'Angular', 'Svelte',
+    'Vite', 'HTML5', 'CSS3', 'Tailwind CSS', 'Bootstrap', 'SASS', 'Flexbox',
+    'CSS Grid', 'Fetch API', 'Async/Await', 'DOM', 'Responsive Design',
+  ],
+  backend: [
+    'Django', 'Django REST', 'FastAPI', 'Node.js', 'Express', 'Spring Boot',
+    'Laravel', 'ASP.NET Core', 'Python', 'Java', 'C#', 'Go', 'PHP',
+    'REST APIs', 'GraphQL', 'JWT', 'OAuth', 'Middleware', 'ORM', 'CRUD',
+  ],
+  db: [
+    'PostgreSQL', 'MySQL', 'SQLite', 'MongoDB', 'Redis', 'SQL', 'Joins',
+    'CTEs', 'Window Functions', 'Índices', 'Normalización', 'Modelado ER',
+    'JSONB', 'Triggers', 'Migrations', 'Subconsultas',
+  ],
+  devops: [
+    'Docker', 'Docker Compose', 'Git', 'GitHub', 'Git Flow', 'Linux', 'Bash',
+    'Nginx', 'Gunicorn', 'SSH', 'VPS', 'HTTPS/SSL', 'Certbot', 'CI/CD',
+    'Shell scripting', 'Cron jobs', 'Vim',
+  ],
+  methods: [
+    'Scrum', 'Kanban', 'Agile', 'Sprints', 'Backlog', 'SOLID', 'Clean Architecture',
+    'TDD', 'Pytest', 'Jest', 'Unit Testing', 'Mocking', 'Code Review', 'DDD',
+  ],
+};
+CHIP_CATALOG.all = [...new Set(Object.values(CHIP_CATALOG).flat())];
+
+const chipCategories = [
+  { id: 'all',     icon: '🌐', label: 'Todas'     },
+  { id: 'data',    icon: '📊', label: 'Data'       },
+  { id: 'web',     icon: '🖥️', label: 'Frontend'   },
+  { id: 'backend', icon: '⚙️', label: 'Backend'    },
+  { id: 'db',      icon: '🗄️', label: 'Bases de datos' },
+  { id: 'devops',  icon: '🛠️', label: 'DevOps'     },
+  { id: 'methods', icon: '📋', label: 'Metodologías' },
+];
+
+const filteredPresetChips = computed(() =>
+  CHIP_CATALOG[activeChipCat.value] || CHIP_CATALOG.all
+);
+
+// ── Chip actions ─────────────────────────────────────────────────────────────
+function toggleChip(tech) {
+  const idx = toolForm.selectedChips.indexOf(tech);
+  if (idx === -1) {
+    toolForm.selectedChips.push(tech);
+  } else {
+    toolForm.selectedChips.splice(idx, 1);
+  }
+  syncHerramientas();
+}
+
+function removeChip(tech) {
+  const idx = toolForm.selectedChips.indexOf(tech);
+  if (idx !== -1) toolForm.selectedChips.splice(idx, 1);
+  syncHerramientas();
+}
+
+function addCustomChip() {
+  const val = customChipInput.value.trim().replace(/,$/, '');
+  if (!val || toolForm.selectedChips.includes(val)) {
+    customChipInput.value = '';
+    return;
+  }
+  toolForm.selectedChips.push(val);
+  customChipInput.value = '';
+  syncHerramientas();
+}
+
+function syncHerramientas() {
+  toolForm.herramientas = toolForm.selectedChips.join(', ');
+}
+
+// ── Modal open/close ─────────────────────────────────────────────────────────
 const openToolModal = (t = null) => {
+  customChipInput.value  = '';
+  activeChipCat.value    = 'all';
+
   if (t) {
     toolModal.isEdit = true;
-    toolModal.id = t.id;
-    toolForm.area = t.area;
-    toolForm.herramientas = t.herramientas;
+    toolModal.id     = t.id;
+    toolForm.area    = t.area;
     toolForm.id_categorias = t.id_categorias;
+    toolForm.progreso      = t.progreso ?? 0;
+    // Parse existing CSV into selected chips
+    toolForm.selectedChips = t.herramientas
+      ? t.herramientas.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    toolForm.herramientas  = t.herramientas || '';
   } else {
-    toolModal.isEdit = false;
-    toolModal.id = null;
-    toolForm.area = '';
-    toolForm.herramientas = '';
+    toolModal.isEdit       = false;
+    toolModal.id           = null;
+    toolForm.area          = '';
+    toolForm.herramientas  = '';
+    toolForm.selectedChips = [];
     toolForm.id_categorias = null;
+    toolForm.progreso      = 0;
   }
   toolModal.show = true;
 };
 
 const saveTool = async () => {
-  const url = toolModal.isEdit ? `/api/tools/${toolModal.id}/` : '/api/tools/';
+  if (toolForm.selectedChips.length === 0) {
+    showToast('Agrega al menos una herramienta', 'error');
+    return;
+  }
+  syncHerramientas();
+
+  const url    = toolModal.isEdit ? `/api/tools/${toolModal.id}/` : '/api/tools/';
   const method = toolModal.isEdit ? 'PUT' : 'POST';
+  const payload = {
+    area:          toolForm.area,
+    herramientas:  toolForm.herramientas,
+    id_categorias: toolForm.id_categorias,
+    progreso:      toolForm.progreso,
+  };
 
   try {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toolForm)
+      body: JSON.stringify(payload)
     });
     if (res.ok) {
-      showToast(toolModal.isEdit ? 'Tool actualizada' : 'Tool creada');
+      showToast(toolModal.isEdit ? 'Tool actualizada ✔' : 'Tool creada ✔');
       toolModal.show = false;
       fetchTools();
     }
@@ -951,6 +1164,9 @@ const deleteTool = async (id) => {
 .modal-card {
   width: 100%;
   max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
@@ -961,12 +1177,23 @@ const deleteTool = async (id) => {
 .modal-card h3 {
   margin: 0 0 1.25rem;
   font-size: 1.3rem;
+  flex-shrink: 0;
 }
 
 .modal-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.modal-form::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-form::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
 }
 
 .form-row { display: flex; gap: 1rem; }
@@ -1088,4 +1315,327 @@ const deleteTool = async (id) => {
 
 .slide-down-enter-active, .slide-down-leave-active { transition: all 0.3s ease; }
 .slide-down-enter-from, .slide-down-leave-to { opacity: 0; transform: translateY(20px); }
+
+/* ---- Mini Progress (table) ---- */
+.progress-cell { min-width: 140px; }
+
+.mini-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.mini-progress-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.fill-high { background: linear-gradient(90deg, #00d4ff, #3a6ef5); }
+.fill-med  { background: linear-gradient(90deg, #3a6ef5, #6366f1); }
+.fill-low  { background: linear-gradient(90deg, #f0316d, #fb923c); }
+
+.mini-progress-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+  min-width: 32px;
+}
+
+/* ---- Slider (modal) ---- */
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.slider-track-container {
+  position: relative;
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.slider-track-display {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 3px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.slider-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.1s ease;
+}
+
+.progress-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  margin: 0;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38bdf8;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 0px;
+}
+
+.progress-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.8);
+}
+
+.progress-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+}
+
+.slider-percent {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #38bdf8;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ---- Progress value badge ---- */
+.progress-value-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.badge-high {
+  background: rgba(0, 212, 255, 0.15);
+  color: #00d4ff;
+}
+
+.badge-med {
+  background: rgba(58, 110, 245, 0.15);
+  color: #818cf8;
+}
+
+.badge-low {
+  background: rgba(240, 49, 109, 0.15);
+  color: #f0316d;
+}
+
+/* =====================================================================
+   CHIP SELECTOR INTERACTIVO
+===================================================================== */
+
+/* Counter badge */
+.chip-counter {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 50px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+/* Selected chips row */
+.selected-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.65rem 0.8rem;
+  background: rgba(56, 189, 248, 0.04);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 8px;
+  min-height: 42px;
+}
+
+.sel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem 0.25rem 0.7rem;
+  border-radius: 5px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.sel-chip:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.sel-chip svg { flex-shrink: 0; }
+
+/* Empty hint */
+.chips-empty-hint {
+  font-size: 0.8rem;
+  color: #475569;
+  font-style: italic;
+  padding: 0.2rem 0;
+}
+
+/* Category filter tabs */
+.chip-cat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.chip-cat-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.28rem 0.7rem;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.chip-cat-btn:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #94a3b8;
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.chip-cat-btn.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+}
+
+/* Preset chips grid */
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  max-height: 140px;
+  overflow-y: auto;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+
+.preset-chips::-webkit-scrollbar {
+  width: 4px;
+}
+.preset-chips::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+
+.preset-chip {
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 0.28rem 0.65rem;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.preset-chip:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  background: rgba(56, 189, 248, 0.06);
+  color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+.preset-chip.selected {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.12);
+}
+
+.preset-chip.selected::before {
+  content: '✓ ';
+  font-size: 0.65rem;
+}
+
+/* Custom chip input row */
+.custom-chip-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.custom-chip-input {
+  flex: 1;
+}
+
+.btn-add-chip {
+  padding: 0 1rem;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+
+.btn-add-chip:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.btn-add-chip:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 </style>
+
