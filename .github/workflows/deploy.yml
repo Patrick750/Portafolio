@@ -29,6 +29,13 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/portafolio:latest
 
+    - name: Build y Push Backend
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/portafolio-backend:latest
+
     - name: Desplegar en el VPS
       uses: appleboy/ssh-action@master
       with:
