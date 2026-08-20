@@ -63,5 +63,3 @@ networks:
 
 volumes:
   portafolio_db:
-    external: true
-    name: portafolio_db
