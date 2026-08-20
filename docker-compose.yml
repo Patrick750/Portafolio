@@ -52,7 +52,7 @@ services:
     env_file:
       - .env
     volumes:
-      - portafolio:/var/lib/postgresql/data
+      - portafolio_db:/var/lib/postgresql/data
     networks:
       - portafolio
 
@@ -62,4 +62,6 @@ networks:
     name: proxy-network
 
 volumes:
-  portafolio:
+  portafolio_db:
+    external: true
+    name: portafolio_db
