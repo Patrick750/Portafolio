@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('login/', views.login, name='login'),
     path('api/login/', views.login, name='api_login'),
+    path('api/logout/', views.logout, name='api_logout'),
 
     # CRUD 1: Proyectos
     path('api/proyectos/', views.proyectos_api, name='proyectos_list'),

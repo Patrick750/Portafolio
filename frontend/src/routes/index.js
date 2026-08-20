@@ -21,7 +21,8 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: DashboardView
+    component: DashboardView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/dashboard/',
@@ -38,5 +39,16 @@ const router = createRouter({
   routes
 })
 
-export default router
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token');
+  
+  if (to.meta.requiresAuth && !token) {
+    next({ name: 'Login' });
+  } else if (to.name === 'Login' && token) {
+    next({ name: 'Dashboard' });
+  } else {
+    next();
+  }
+});
 
+export default router

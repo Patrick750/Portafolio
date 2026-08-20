@@ -68,3 +68,14 @@ class Usuario(models.Model):
 
     def __str__(self):
         return self.correo or f"Usuario {self.pk}"
+
+
+class BlacklistedToken(models.Model):
+    token = models.CharField(max_length=500, unique=True)
+    blacklisted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'blacklisted_tokens'
+
+    def __str__(self):
+        return self.token

@@ -1,9 +1,42 @@
 import json
+import jwt
+import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import check_password
-from .models import Usuario, Proyecto, Contacto, Tool, Categoria
+from django.conf import settings
+from functools import wraps
+from .models import Usuario, Proyecto, Contacto, Tool, Categoria, BlacklistedToken
+
+def generate_jwt(user_id):
+    payload = {
+        'user_id': user_id,
+        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24),
+        'iat': datetime.datetime.now(datetime.timezone.utc)
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+def jwt_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.method in ["OPTIONS", "GET"]:
+            return view_func(request, *args, **kwargs)
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return json_response({'error': 'No se proporcionó un token válido'}, status=401)
+        token = auth_header.split(' ')[1]
+        if BlacklistedToken.objects.filter(token=token).exists():
+            return json_response({'error': 'Token en lista negra'}, status=401)
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            request.user_id = payload['user_id']
+        except jwt.ExpiredSignatureError:
+            return json_response({'error': 'Token expirado'}, status=401)
+        except jwt.InvalidTokenError:
+            return json_response({'error': 'Token inválido'}, status=401)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 
 def json_response(data, status=200):
@@ -37,9 +70,11 @@ def login(request):
     user = Usuario.objects.filter(correo=correo).first()
 
     if user and (check_password(contrasena, user.contrasena) or user.contrasena == contrasena):
+        token = generate_jwt(user.id)
         return json_response({
             'success': True,
             'message': 'Inicio de sesión exitoso',
+            'token': token,
             'user': {
                 'id': user.id,
                 'correo': user.correo
@@ -50,6 +85,18 @@ def login(request):
             'success': False,
             'error': 'Credenciales incorrectas. Verifique su correo y contraseña.'
         }, status=401)
+
+
+@csrf_exempt
+@require_http_methods(["POST", "OPTIONS"])
+def logout(request):
+    if request.method == "OPTIONS":
+        return json_response({'status': 'ok'})
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+        BlacklistedToken.objects.get_or_create(token=token)
+    return json_response({'success': True, 'message': 'Sesión cerrada exitosamente'})
 
 
 # ==============================================================================
@@ -70,6 +117,7 @@ def proyecto_to_dict(p):
 
 
 @csrf_exempt
+@jwt_required
 def proyectos_api(request, pk=None):
     if request.method == "OPTIONS":
         return json_response({'status': 'ok'})
@@ -98,11 +146,11 @@ def proyectos_api(request, pk=None):
             estado=data.get('estado', True),
             reto=data.get('reto', '')
         )
-        return json_response(proyecto_to_dict(p), status=201)
+        return json_response({'message': 'Proyecto creado', 'id': p.id}, status=201)
 
-    elif request.method in ["PUT", "PATCH"]:
+    elif request.method == "PUT":
         if not pk:
-            return json_response({'error': 'ID requerido para actualizar'}, status=400)
+            return json_response({'error': 'Falta ID para actualizar'}, status=400)
         p = Proyecto.objects.filter(pk=pk).first()
         if not p:
             return json_response({'error': 'Proyecto no encontrado'}, status=404)
@@ -112,38 +160,30 @@ def proyectos_api(request, pk=None):
         except Exception:
             return json_response({'error': 'JSON inválido'}, status=400)
 
-        if 'nombre' in data:
-            p.nombre = data['nombre']
-        if 'descripcion' in data:
-            p.descripcion = data['descripcion']
-        if 'herramientas' in data:
-            p.herramientas = data['herramientas']
-        if 'demo' in data:
-            p.demo = data['demo']
-        if 'github' in data:
-            p.github = data['github']
-        if 'estado' in data:
-            p.estado = data['estado']
-        if 'reto' in data:
-            p.reto = data['reto']
-
+        p.nombre = data.get('nombre', p.nombre)
+        p.descripcion = data.get('descripcion', p.descripcion)
+        p.herramientas = data.get('herramientas', p.herramientas)
+        p.demo = data.get('demo', p.demo)
+        p.github = data.get('github', p.github)
+        p.estado = data.get('estado', p.estado)
+        p.reto = data.get('reto', p.reto)
         p.save()
-        return json_response(proyecto_to_dict(p))
+        return json_response({'message': 'Proyecto actualizado'})
 
     elif request.method == "DELETE":
         if not pk:
-            return json_response({'error': 'ID requerido para eliminar'}, status=400)
+            return json_response({'error': 'Falta ID para eliminar'}, status=400)
         p = Proyecto.objects.filter(pk=pk).first()
         if not p:
             return json_response({'error': 'Proyecto no encontrado'}, status=404)
         p.delete()
-        return json_response({'message': 'Proyecto eliminado correctamente'})
+        return json_response({'message': 'Proyecto eliminado'})
 
     return json_response({'error': 'Método no permitido'}, status=405)
 
 
 # ==============================================================================
-# CRUD 2: CONTACTO
+# CRUD 2: CONTACTOS
 # ==============================================================================
 
 def contacto_to_dict(c):
@@ -154,8 +194,8 @@ def contacto_to_dict(c):
         'github': c.github or ''
     }
 
-
 @csrf_exempt
+@jwt_required
 def contacto_api(request, pk=None):
     if request.method == "OPTIONS":
         return json_response({'status': 'ok'})
@@ -166,7 +206,7 @@ def contacto_api(request, pk=None):
             if not c:
                 return json_response({'error': 'Contacto no encontrado'}, status=404)
             return json_response(contacto_to_dict(c))
-        contactos = [contacto_to_dict(c) for c in Contacto.objects.all().order_by('-id')]
+        contactos = [contacto_to_dict(c) for c in Contacto.objects.all().order_by('id')]
         return json_response(contactos)
 
     elif request.method == "POST":
@@ -174,44 +214,38 @@ def contacto_api(request, pk=None):
             data = json.loads(request.body.decode('utf-8'))
         except Exception:
             return json_response({'error': 'JSON inválido'}, status=400)
-
         c = Contacto.objects.create(
             correo=data.get('correo', ''),
             link=data.get('link', ''),
             github=data.get('github', '')
         )
-        return json_response(contacto_to_dict(c), status=201)
+        return json_response({'message': 'Contacto creado', 'id': c.id}, status=201)
 
-    elif request.method in ["PUT", "PATCH"]:
+    elif request.method == "PUT":
         if not pk:
-            return json_response({'error': 'ID requerido para actualizar'}, status=400)
+            return json_response({'error': 'Falta ID'}, status=400)
         c = Contacto.objects.filter(pk=pk).first()
         if not c:
             return json_response({'error': 'Contacto no encontrado'}, status=404)
-
         try:
             data = json.loads(request.body.decode('utf-8'))
         except Exception:
             return json_response({'error': 'JSON inválido'}, status=400)
 
-        if 'correo' in data:
-            c.correo = data['correo']
-        if 'link' in data:
-            c.link = data['link']
-        if 'github' in data:
-            c.github = data['github']
-
+        c.correo = data.get('correo', c.correo)
+        c.link = data.get('link', c.link)
+        c.github = data.get('github', c.github)
         c.save()
-        return json_response(contacto_to_dict(c))
+        return json_response({'message': 'Contacto actualizado'})
 
     elif request.method == "DELETE":
         if not pk:
-            return json_response({'error': 'ID requerido para eliminar'}, status=400)
+            return json_response({'error': 'Falta ID'}, status=400)
         c = Contacto.objects.filter(pk=pk).first()
         if not c:
             return json_response({'error': 'Contacto no encontrado'}, status=404)
         c.delete()
-        return json_response({'message': 'Contacto eliminado correctamente'})
+        return json_response({'message': 'Contacto eliminado'})
 
     return json_response({'error': 'Método no permitido'}, status=405)
 
@@ -232,6 +266,7 @@ def tool_to_dict(t):
 
 
 @csrf_exempt
+@jwt_required
 def tools_api(request, pk=None):
     if request.method == "OPTIONS":
         return json_response({'status': 'ok'})
@@ -304,6 +339,7 @@ def tools_api(request, pk=None):
 # ==============================================================================
 
 @csrf_exempt
+@jwt_required
 def categorias_api(request):
     if request.method == "OPTIONS":
         return json_response({'status': 'ok'})

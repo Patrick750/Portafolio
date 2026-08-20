@@ -57,9 +57,9 @@
             </svg>
             Portafolio
           </router-link>
-          <router-link to="/login" class="btn-logout">
-            Salir
-          </router-link>
+          <button @click="handleLogout" class="btn-logout">
+            Log out
+          </button>
         </div>
       </div>
     </header>
@@ -540,7 +540,7 @@ const showToast = (msg, type = 'success') => {
 const fetchProyectos = async () => {
   loadingProyectos.value = true;
   try {
-    const res = await fetch('/api/proyectos/');
+    const res = await fetch('/api/proyectos/', { headers: getAuthHeaders() });
     if (res.ok) proyectos.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -552,7 +552,7 @@ const fetchProyectos = async () => {
 const fetchContactos = async () => {
   loadingContactos.value = true;
   try {
-    const res = await fetch('/api/contacto/');
+    const res = await fetch('/api/contacto/', { headers: getAuthHeaders() });
     if (res.ok) contactos.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -564,7 +564,7 @@ const fetchContactos = async () => {
 const fetchTools = async () => {
   loadingTools.value = true;
   try {
-    const res = await fetch('/api/tools/');
+    const res = await fetch('/api/tools/', { headers: getAuthHeaders() });
     if (res.ok) tools.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -575,7 +575,7 @@ const fetchTools = async () => {
 
 const fetchCategorias = async () => {
   try {
-    const res = await fetch('/api/categorias/');
+    const res = await fetch('/api/categorias/', { headers: getAuthHeaders() });
     if (res.ok) categorias.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -680,7 +680,7 @@ const saveProyecto = async () => {
   try {
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
     if (res.ok) {
@@ -696,7 +696,7 @@ const saveProyecto = async () => {
 const deleteProyecto = async (id) => {
   if (!confirm('¿Está seguro de eliminar este proyecto?')) return;
   try {
-    const res = await fetch(`/api/proyectos/${id}/`, { method: 'DELETE' });
+    const res = await fetch(`/api/proyectos/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
     if (res.ok) {
       showToast('Proyecto eliminado');
       fetchProyectos();
@@ -736,7 +736,7 @@ const saveContacto = async () => {
   try {
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(contactoForm)
     });
     if (res.ok) {
@@ -752,7 +752,7 @@ const saveContacto = async () => {
 const deleteContacto = async (id) => {
   if (!confirm('¿Está seguro de eliminar este contacto?')) return;
   try {
-    const res = await fetch(`/api/contacto/${id}/`, { method: 'DELETE' });
+    const res = await fetch(`/api/contacto/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
     if (res.ok) {
       showToast('Contacto eliminado');
       fetchContactos();
@@ -774,9 +774,33 @@ const toolForm = reactive({
   progreso: 0
 });
 
-// ── Custom chip input ────────────────────────────────────────────────────────
-const customChipInput = ref('');
-const activeChipCat   = ref('all');
+// ── Global App State ──────────────────────────────────────────────────────────
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
+const handleLogout = async () => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      await fetch('/api/logout/', {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+    } catch(e) {
+      console.error(e);
+    }
+  }
+  localStorage.removeItem('token');
+  window.location.href = '/login';
+};
+
+
 
 // ── Preset technology catalog ────────────────────────────────────────────────
 const CHIP_CATALOG = {
@@ -906,7 +930,7 @@ const saveTool = async () => {
   try {
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
     if (res.ok) {
@@ -922,7 +946,7 @@ const saveTool = async () => {
 const deleteTool = async (id) => {
   if (!confirm('¿Está seguro de eliminar esta tool?')) return;
   try {
-    const res = await fetch(`/api/tools/${id}/`, { method: 'DELETE' });
+    const res = await fetch(`/api/tools/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
     if (res.ok) {
       showToast('Tool eliminada');
       fetchTools();

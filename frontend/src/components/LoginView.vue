@@ -145,6 +145,7 @@ const handleLogin = async () => {
     const data = await response.json();
 
     if (response.ok && data.success) {
+      if (data.token) localStorage.setItem('token', data.token);
       successMessage.value = data.message || 'Inicio de sesión exitoso';
       setTimeout(() => {
         window.location.href = '/dashboard';
