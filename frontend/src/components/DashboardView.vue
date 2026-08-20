@@ -537,10 +537,12 @@ const showToast = (msg, type = 'success') => {
 // -----------------------------------------------------------------------------
 // API FETCHERS
 // -----------------------------------------------------------------------------
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 const fetchProyectos = async () => {
   loadingProyectos.value = true;
   try {
-    const res = await fetch('/api/proyectos/', { headers: getAuthHeaders() });
+    const res = await fetch(`${API_URL}/api/proyectos/`, { headers: getAuthHeaders() });
     if (res.ok) proyectos.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -552,7 +554,7 @@ const fetchProyectos = async () => {
 const fetchContactos = async () => {
   loadingContactos.value = true;
   try {
-    const res = await fetch('/api/contacto/', { headers: getAuthHeaders() });
+    const res = await fetch(`${API_URL}/api/contacto/`, { headers: getAuthHeaders() });
     if (res.ok) contactos.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -564,7 +566,7 @@ const fetchContactos = async () => {
 const fetchTools = async () => {
   loadingTools.value = true;
   try {
-    const res = await fetch('/api/tools/', { headers: getAuthHeaders() });
+    const res = await fetch(`${API_URL}/api/tools/`, { headers: getAuthHeaders() });
     if (res.ok) tools.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -575,7 +577,7 @@ const fetchTools = async () => {
 
 const fetchCategorias = async () => {
   try {
-    const res = await fetch('/api/categorias/', { headers: getAuthHeaders() });
+    const res = await fetch(`${API_URL}/api/categorias/`, { headers: getAuthHeaders() });
     if (res.ok) categorias.value = await res.json();
   } catch (err) {
     console.error(err);
@@ -674,7 +676,7 @@ const saveProyecto = async () => {
     estado: proyectoForm.estado
   };
 
-  const url = proyectoModal.isEdit ? `/api/proyectos/${proyectoModal.id}/` : '/api/proyectos/';
+  const url = proyectoModal.isEdit ? `${API_URL}/api/proyectos/${proyectoModal.id}/` : `${API_URL}/api/proyectos/`;
   const method = proyectoModal.isEdit ? 'PUT' : 'POST';
 
   try {
@@ -696,7 +698,7 @@ const saveProyecto = async () => {
 const deleteProyecto = async (id) => {
   if (!confirm('¿Está seguro de eliminar este proyecto?')) return;
   try {
-    const res = await fetch(`/api/proyectos/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
+    const res = await fetch(`${API_URL}/api/proyectos/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
     if (res.ok) {
       showToast('Proyecto eliminado');
       fetchProyectos();
@@ -730,7 +732,7 @@ const openContactoModal = (c = null) => {
 };
 
 const saveContacto = async () => {
-  const url = contactoModal.isEdit ? `/api/contacto/${contactoModal.id}/` : '/api/contacto/';
+  const url = contactoModal.isEdit ? `${API_URL}/api/contacto/${contactoModal.id}/` : `${API_URL}/api/contacto/`;
   const method = contactoModal.isEdit ? 'PUT' : 'POST';
 
   try {
@@ -752,7 +754,7 @@ const saveContacto = async () => {
 const deleteContacto = async (id) => {
   if (!confirm('¿Está seguro de eliminar este contacto?')) return;
   try {
-    const res = await fetch(`/api/contacto/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
+    const res = await fetch(`${API_URL}/api/contacto/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
     if (res.ok) {
       showToast('Contacto eliminado');
       fetchContactos();
@@ -788,7 +790,7 @@ const handleLogout = async () => {
   const token = localStorage.getItem('token');
   if (token) {
     try {
-      await fetch('/api/logout/', {
+      await fetch(`${API_URL}/api/logout/`, {
         method: 'POST',
         headers: getAuthHeaders()
       });
@@ -918,7 +920,7 @@ const saveTool = async () => {
   }
   syncHerramientas();
 
-  const url    = toolModal.isEdit ? `/api/tools/${toolModal.id}/` : '/api/tools/';
+  const url = toolModal.isEdit ? `${API_URL}/api/tools/${toolModal.id}/` : `${API_URL}/api/tools/`;
   const method = toolModal.isEdit ? 'PUT' : 'POST';
   const payload = {
     area:          toolForm.area,
@@ -946,7 +948,7 @@ const saveTool = async () => {
 const deleteTool = async (id) => {
   if (!confirm('¿Está seguro de eliminar esta tool?')) return;
   try {
-    const res = await fetch(`/api/tools/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
+    const res = await fetch(`${API_URL}/api/tools/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
     if (res.ok) {
       showToast('Tool eliminada');
       fetchTools();

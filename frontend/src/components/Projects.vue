@@ -145,7 +145,8 @@ function getProjectIcon(nombre = '') {
 const fetchProyectos = async () => {
   loading.value = true;
   try {
-    const res = await fetch('/api/proyectos/');
+    const API_URL = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${API_URL}/api/proyectos/`);
     if (res.ok) projects.value = await res.json();
   } catch (err) {
     console.error('[Projects] Error al cargar proyectos:', err);

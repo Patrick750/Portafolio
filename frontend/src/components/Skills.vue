@@ -429,9 +429,10 @@ function onLeave(el, done) {
 async function fetchData() {
   loading.value = true;
   try {
+    const API_URL = import.meta.env.VITE_API_URL || '';
     const [rt, rc] = await Promise.all([
-      fetch('/api/tools/'),
-      fetch('/api/categorias/'),
+      fetch(`${API_URL}/api/tools/`),
+      fetch(`${API_URL}/api/categorias/`),
     ]);
     if (rt.ok) rawTools.value      = await rt.json();
     if (rc.ok) rawCategorias.value = await rc.json();

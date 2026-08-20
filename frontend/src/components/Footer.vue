@@ -102,7 +102,8 @@ const contacto = reactive({
 
 const fetchContacto = async () => {
   try {
-    const res = await fetch('/api/contacto/');
+    const API_URL = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${API_URL}/api/contacto/`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
