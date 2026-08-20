@@ -25,14 +25,14 @@ jobs:
     - name: Build y Push Frontend
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./frontend
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/portafolio:latest
 
     - name: Build y Push Backend
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./service
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/portafolio-backend:latest
 
@@ -46,6 +46,7 @@ jobs:
         script: |
           # Asegúrate de que esta sea la ruta real en tu servidor VPS
           cd ~/Portafolio
+          git checkout main
           git pull origin main
           docker compose pull
           docker compose up -d --build
