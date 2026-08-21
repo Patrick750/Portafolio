@@ -29,8 +29,8 @@ DEBUG = True
 ALLOWED_HOSTS = ["portpatrickapi.adsoproject.dev", "localhost"]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://patrick.adsoproject.dev",
-    "https://portpatrickapi.adsoproject.dev"
+    "portpatrickapi.adsoproject.dev",
+    'localhost'
 ]
 
 # Application definition
