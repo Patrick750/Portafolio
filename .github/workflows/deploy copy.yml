@@ -3,7 +3,7 @@ name: Despliegue Automático Portafolio
 # 1. ¿Cuándo se activa?
 on:
   push:
-    branches: [ "db-implementation" ]
+    branches: [ "peticiones" ]
 
 jobs:
   build-and-deploy:
@@ -39,7 +39,7 @@ jobs:
         script: |
           # Asegúrate de que esta sea la ruta real en tu servidor VPS
           cd ~/Portafolio
-          git pull origin db-implementation
+          git pull origin peticiones
           docker compose pull
           docker compose up -d --build
           docker image prune -f
