@@ -114,6 +114,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
+import clienteAxios from '../api/axios';
 
 const form = reactive({
   correo: '',
@@ -131,21 +132,14 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    const API_URL = import.meta.env.VITE_API_URL || '';
-    const response = await fetch(`${API_URL}/api/login/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        correo: form.correo,
-        contrasena: form.contrasena
-      }),
+    const response = await clienteAxios.post('/api/login/', {
+      correo: form.correo,
+      contrasena: form.contrasena
     });
 
-    const data = await response.json();
+    const data = response.data;
 
-    if (response.ok && data.success) {
+    if (data.success) {
       if (data.token) localStorage.setItem('token', data.token);
       successMessage.value = data.message || 'Inicio de sesión exitoso';
       setTimeout(() => {
@@ -156,7 +150,11 @@ const handleLogin = async () => {
     }
   } catch (err) {
     console.error('Error en login:', err);
-    errorMessage.value = 'Error de conexión con el servidor. Intente nuevamente.';
+    if (err.response && err.response.data && err.response.data.error) {
+      errorMessage.value = err.response.data.error;
+    } else {
+      errorMessage.value = 'Error de conexión con el servidor. Intente nuevamente.';
+    }
   } finally {
     loading.value = false;
   }

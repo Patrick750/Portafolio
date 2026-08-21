@@ -537,13 +537,13 @@ const showToast = (msg, type = 'success') => {
 // -----------------------------------------------------------------------------
 // API FETCHERS
 // -----------------------------------------------------------------------------
-const API_URL = import.meta.env.VITE_API_URL || '';
+import clienteAxios from '../api/axios';
 
 const fetchProyectos = async () => {
   loadingProyectos.value = true;
   try {
-    const res = await fetch(`${API_URL}/api/proyectos/`, { headers: getAuthHeaders() });
-    if (res.ok) proyectos.value = await res.json();
+    const res = await clienteAxios.get(`/api/proyectos/`);
+    proyectos.value = res.data;
   } catch (err) {
     console.error(err);
   } finally {
@@ -554,8 +554,8 @@ const fetchProyectos = async () => {
 const fetchContactos = async () => {
   loadingContactos.value = true;
   try {
-    const res = await fetch(`${API_URL}/api/contacto/`, { headers: getAuthHeaders() });
-    if (res.ok) contactos.value = await res.json();
+    const res = await clienteAxios.get(`/api/contacto/`);
+    contactos.value = res.data;
   } catch (err) {
     console.error(err);
   } finally {
@@ -566,8 +566,8 @@ const fetchContactos = async () => {
 const fetchTools = async () => {
   loadingTools.value = true;
   try {
-    const res = await fetch(`${API_URL}/api/tools/`, { headers: getAuthHeaders() });
-    if (res.ok) tools.value = await res.json();
+    const res = await clienteAxios.get(`/api/tools/`);
+    tools.value = res.data;
   } catch (err) {
     console.error(err);
   } finally {
@@ -577,8 +577,8 @@ const fetchTools = async () => {
 
 const fetchCategorias = async () => {
   try {
-    const res = await fetch(`${API_URL}/api/categorias/`, { headers: getAuthHeaders() });
-    if (res.ok) categorias.value = await res.json();
+    const res = await clienteAxios.get(`/api/categorias/`);
+    categorias.value = res.data;
   } catch (err) {
     console.error(err);
   }
@@ -676,20 +676,18 @@ const saveProyecto = async () => {
     estado: proyectoForm.estado
   };
 
-  const url = proyectoModal.isEdit ? `${API_URL}/api/proyectos/${proyectoModal.id}/` : `${API_URL}/api/proyectos/`;
-  const method = proyectoModal.isEdit ? 'PUT' : 'POST';
+  const url = proyectoModal.isEdit ? `/api/proyectos/${proyectoModal.id}/` : `/api/proyectos/`;
 
   try {
-    const res = await fetch(url, {
-      method,
-      headers: getAuthHeaders(),
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      showToast(proyectoModal.isEdit ? 'Proyecto actualizado' : 'Proyecto creado exitosamente');
-      proyectoModal.show = false;
-      fetchProyectos();
+    if (proyectoModal.isEdit) {
+      await clienteAxios.put(url, payload);
+    } else {
+      await clienteAxios.post(url, payload);
     }
+    
+    showToast(proyectoModal.isEdit ? 'Proyecto actualizado' : 'Proyecto creado exitosamente');
+    proyectoModal.show = false;
+    fetchProyectos();
   } catch (err) {
     showToast('Error al guardar proyecto', 'error');
   }
@@ -698,11 +696,9 @@ const saveProyecto = async () => {
 const deleteProyecto = async (id) => {
   if (!confirm('¿Está seguro de eliminar este proyecto?')) return;
   try {
-    const res = await fetch(`${API_URL}/api/proyectos/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
-    if (res.ok) {
-      showToast('Proyecto eliminado');
-      fetchProyectos();
-    }
+    await clienteAxios.delete(`/api/proyectos/${id}/`);
+    showToast('Proyecto eliminado');
+    fetchProyectos();
   } catch (err) {
     showToast('Error al eliminar', 'error');
   }
@@ -732,20 +728,18 @@ const openContactoModal = (c = null) => {
 };
 
 const saveContacto = async () => {
-  const url = contactoModal.isEdit ? `${API_URL}/api/contacto/${contactoModal.id}/` : `${API_URL}/api/contacto/`;
-  const method = contactoModal.isEdit ? 'PUT' : 'POST';
+  const url = contactoModal.isEdit ? `/api/contacto/${contactoModal.id}/` : `/api/contacto/`;
 
   try {
-    const res = await fetch(url, {
-      method,
-      headers: getAuthHeaders(),
-      body: JSON.stringify(contactoForm)
-    });
-    if (res.ok) {
-      showToast(contactoModal.isEdit ? 'Contacto actualizado' : 'Contacto creado');
-      contactoModal.show = false;
-      fetchContactos();
+    if (contactoModal.isEdit) {
+      await clienteAxios.put(url, contactoForm);
+    } else {
+      await clienteAxios.post(url, contactoForm);
     }
+    
+    showToast(contactoModal.isEdit ? 'Contacto actualizado' : 'Contacto creado');
+    contactoModal.show = false;
+    fetchContactos();
   } catch (err) {
     showToast('Error al guardar contacto', 'error');
   }
@@ -754,11 +748,9 @@ const saveContacto = async () => {
 const deleteContacto = async (id) => {
   if (!confirm('¿Está seguro de eliminar este contacto?')) return;
   try {
-    const res = await fetch(`${API_URL}/api/contacto/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
-    if (res.ok) {
-      showToast('Contacto eliminado');
-      fetchContactos();
-    }
+    await clienteAxios.delete(`/api/contacto/${id}/`);
+    showToast('Contacto eliminado');
+    fetchContactos();
   } catch (err) {
     showToast('Error al eliminar', 'error');
   }
@@ -790,10 +782,7 @@ const handleLogout = async () => {
   const token = localStorage.getItem('token');
   if (token) {
     try {
-      await fetch(`${API_URL}/api/logout/`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
+      await clienteAxios.post(`/api/logout/`);
     } catch(e) {
       console.error(e);
     }
@@ -920,8 +909,7 @@ const saveTool = async () => {
   }
   syncHerramientas();
 
-  const url = toolModal.isEdit ? `${API_URL}/api/tools/${toolModal.id}/` : `${API_URL}/api/tools/`;
-  const method = toolModal.isEdit ? 'PUT' : 'POST';
+  const url = toolModal.isEdit ? `/api/tools/${toolModal.id}/` : `/api/tools/`;
   const payload = {
     area:          toolForm.area,
     herramientas:  toolForm.herramientas,
@@ -930,16 +918,15 @@ const saveTool = async () => {
   };
 
   try {
-    const res = await fetch(url, {
-      method,
-      headers: getAuthHeaders(),
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      showToast(toolModal.isEdit ? 'Tool actualizada ✔' : 'Tool creada ✔');
-      toolModal.show = false;
-      fetchTools();
+    if (toolModal.isEdit) {
+      await clienteAxios.put(url, payload);
+    } else {
+      await clienteAxios.post(url, payload);
     }
+    
+    showToast(toolModal.isEdit ? 'Tool actualizada ✔' : 'Tool creada ✔');
+    toolModal.show = false;
+    fetchTools();
   } catch (err) {
     showToast('Error al guardar tool', 'error');
   }
@@ -948,11 +935,9 @@ const saveTool = async () => {
 const deleteTool = async (id) => {
   if (!confirm('¿Está seguro de eliminar esta tool?')) return;
   try {
-    const res = await fetch(`${API_URL}/api/tools/${id}/`, { method: 'DELETE', headers: getAuthHeaders() });
-    if (res.ok) {
-      showToast('Tool eliminada');
-      fetchTools();
-    }
+    await clienteAxios.delete(`/api/tools/${id}/`);
+    showToast('Tool eliminada');
+    fetchTools();
   } catch (err) {
     showToast('Error al eliminar', 'error');
   }

@@ -426,16 +426,17 @@ function onLeave(el, done) {
 }
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
+import clienteAxios from '../api/axios';
+
 async function fetchData() {
   loading.value = true;
   try {
-    const API_URL = import.meta.env.VITE_API_URL || '';
     const [rt, rc] = await Promise.all([
-      fetch(`${API_URL}/api/tools/`),
-      fetch(`${API_URL}/api/categorias/`),
+      clienteAxios.get(`/api/tools/`),
+      clienteAxios.get(`/api/categorias/`),
     ]);
-    if (rt.ok) rawTools.value      = await rt.json();
-    if (rc.ok) rawCategorias.value = await rc.json();
+    rawTools.value      = rt.data;
+    rawCategorias.value = rc.data;
 
     if (groupedCategories.value.length > 0) {
       activeCatId.value = groupedCategories.value[0].id;

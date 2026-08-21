@@ -142,12 +142,13 @@ function getProjectIcon(nombre = '') {
   return '🚀';
 }
 
+import clienteAxios from '../api/axios';
+
 const fetchProyectos = async () => {
   loading.value = true;
   try {
-    const API_URL = import.meta.env.VITE_API_URL || '';
-    const res = await fetch(`${API_URL}/api/proyectos/`);
-    if (res.ok) projects.value = await res.json();
+    const res = await clienteAxios.get(`/api/proyectos/`);
+    projects.value = res.data;
   } catch (err) {
     console.error('[Projects] Error al cargar proyectos:', err);
   } finally {

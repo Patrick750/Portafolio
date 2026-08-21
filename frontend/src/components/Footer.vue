@@ -100,18 +100,17 @@ const contacto = reactive({
   github: ''
 });
 
+import clienteAxios from '../api/axios';
+
 const fetchContacto = async () => {
   try {
-    const API_URL = import.meta.env.VITE_API_URL || '';
-    const res = await fetch(`${API_URL}/api/contacto/`);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const first = data[0];
-        contacto.correo = first.correo || '';
-        contacto.link   = first.link   || '';
-        contacto.github = first.github || '';
-      }
+    const res = await clienteAxios.get(`/api/contacto/`);
+    const data = res.data;
+    if (Array.isArray(data) && data.length > 0) {
+      const first = data[0];
+      contacto.correo = first.correo || '';
+      contacto.link   = first.link   || '';
+      contacto.github = first.github || '';
     }
   } catch (err) {
     console.error('[Footer] Error al cargar contacto:', err);

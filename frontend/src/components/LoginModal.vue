@@ -125,6 +125,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
+import clienteAxios from '../api/axios';
 
 const props = defineProps({
   isOpen: {
@@ -157,21 +158,14 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    const API_URL = import.meta.env.VITE_API_URL || '';
-    const response = await fetch(`${API_URL}/login/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        correo: form.correo,
-        contrasena: form.contrasena
-      }),
+    const response = await clienteAxios.post('/api/login/', {
+      correo: form.correo,
+      contrasena: form.contrasena
     });
 
-    const data = await response.json();
+    const data = response.data;
 
-    if (response.ok && data.success) {
+    if (data.success) {
       successMessage.value = data.message || 'Inicio de sesión exitoso';
       emit('success', data.user);
       setTimeout(() => {
@@ -182,7 +176,11 @@ const handleLogin = async () => {
     }
   } catch (err) {
     console.error('Error al iniciar sesión:', err);
-    errorMessage.value = 'Error al conectar con el servidor. Intente nuevamente.';
+    if (err.response && err.response.data && err.response.data.error) {
+      errorMessage.value = err.response.data.error;
+    } else {
+      errorMessage.value = 'Error al conectar con el servidor. Intente nuevamente.';
+    }
   } finally {
     loading.value = false;
   }
