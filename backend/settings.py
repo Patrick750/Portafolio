@@ -28,8 +28,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["portpatrickapi.adsoproject.dev", "localhost"]
 
-
-
+CORS_ALLOWED_ORIGINS = [
+    "https://patrick.adsoproject.dev",
+    "https://portpatrickapi.adsoproject.dev"
+]
 
 # Application definition
 
@@ -41,12 +43,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'service',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', 
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
