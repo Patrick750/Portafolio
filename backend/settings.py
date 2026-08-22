@@ -26,11 +26,12 @@ SECRET_KEY = 'django-insecure-b7r8xxr2%(10j6^p6evs(f*kn*l+(3$rd(8b+le$xa@k)$bwcq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["portpatrickapi.adsoproject.dev", "localhost"]
+ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOWED_ORIGINS = [
-    "portpatrickapi.adsoproject.dev",
-    'localhost'
+    "http://localhost:5173",
+    "https://portpatrickapi.adsoproject.dev",
+    "https://patrick.adsoproject.dev"
 ]
 
 # Application definition
