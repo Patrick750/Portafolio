@@ -3,12 +3,12 @@ from django.db import models
 
 class Proyecto(models.Model):
     nombre = models.CharField(max_length=255, null=True, blank=True)
-    descripcion = models.CharField(max_length=255, null=True, blank=True)
+    descripcion = models.TextField(null=True, blank=True)
     herramientas = models.JSONField(null=True, blank=True)
     demo = models.CharField(max_length=255, null=True, blank=True)
     github = models.CharField(max_length=255, null=True, blank=True)
     estado = models.BooleanField(null=True, blank=True)
-    reto = models.CharField(max_length=255, null=True, blank=True)
+    reto = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = 'proyectos'
