@@ -52,4 +52,5 @@ jobs:
           git pull origin main
           docker compose pull
           docker compose up -d --build
+          docker exec -it portafolio-backend python manage.py migrate
           docker image prune -f
